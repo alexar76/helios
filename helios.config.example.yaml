@@ -1,0 +1,50 @@
+channel:
+  handle: "@My-AI-Factory"
+  default_category: "28"
+  default_language: en
+
+limits:
+  max_uploads_per_day: 9
+  max_job_retries: 2
+
+# PromoMaterials lives one level above aicom workspace
+promo_materials_dir: ../PromoMaterials
+
+asset_roots:
+  - ../PromoMaterials
+  - ..
+  - ../github/aicom3
+
+templates_dir: ./templates
+
+github:
+  owner: alexar76
+  repos_allowlist:
+    - aicom
+    - argus
+    - oracles
+    - dioscuri
+    - alien-monitor
+    - helios
+
+director:
+  enabled: true
+  # LLM reviews metadata only — never writes VO for template jobs
+
+calliope:
+  enabled: true
+  editorial_enabled: true
+  # Growth-optimized steady state (after PromoMaterials backfill):
+  scout_interval_days: 3       # ~2 scout runs/week → fresh ideas
+  weekly_enqueue_quota: 3      # max 3 new CALLIOPE scripts/week (quality > volume)
+  auto_enqueue_per_run: 1      # 1 script per scout run (human reviews in Studio)
+  scout_ideas_per_run: 5
+  backfill_pause_threshold: 8  # pause editorial while backfill queue > N
+  # mnemosyne_path: /data/mnemosyne.json
+
+notify:
+  webhook_url: ""
+  on_status: [awaiting_approval, failed]
+
+worker:
+  poll_interval_sec: 300
