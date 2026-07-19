@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HELIOS — broadcast layer of the AIMarket ecosystem</title>
+<meta name="description" content="Template in, voiced video out, queued to YouTube — private until you approve. Self-hosted broadcast pipeline for the AICOM open agent economy." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="HELIOS — ecosystem broadcast pipeline" />
+<meta property="og:description" content="Render MP4 from yaml templates, upload to YouTube private-first, human approve → public. Watch the ecosystem series on @My-AI-Factory." />
+<meta property="og:url" content="https://alexar76.github.io/helios/" />
+<meta property="og:image" content="https://img.youtube.com/vi/yLrv1jCgtzQ/maxresdefault.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --void: #060508;
+    --void-2: #0e0a12;
+    --panel: rgba(18, 12, 22, 0.72);
+    --brd: rgba(255, 160, 80, 0.22);
+    --ink: #fff4e8;
+    --muted: #c4a88a;
+    --faint: #8a7060;
+    --sun: #ff8c2a;
+    --sun-glow: #ffb347;
+    --gold: #ffd56a;
+    --ember: #e84a1a;
+    --good: #5dffb0;
+    --queue: #7b9cff;
+    --head: 'Cinzel', Georgia, serif;
+    --body: 'Outfit', system-ui, sans-serif;
+    --maxw: 1180px;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--void); color: var(--ink);
+    font-family: var(--body); font-size: 17px; line-height: 1.58;
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  .nebula {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(50vw 50vw at 18% 12%, rgba(255, 140, 42, 0.18), transparent 62%),
+      radial-gradient(44vw 44vw at 82% 20%, rgba(232, 74, 26, 0.12), transparent 60%),
+      radial-gradient(60vw 60vw at 50% 100%, rgba(255, 213, 106, 0.07), transparent 55%);
+  }
+  .rays {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.35;
+    background: conic-gradient(from 200deg at 14% 8%, transparent 0deg, rgba(255, 179, 71, 0.08) 18deg, transparent 36deg, rgba(255, 140, 42, 0.06) 52deg, transparent 70deg);
+  }
+  .wrap { position: relative; z-index: 2; max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(14px);
+    background: linear-gradient(180deg, rgba(6,5,8,0.94), rgba(6,5,8,0.5));
+    border-bottom: 1px solid var(--brd);
+  }
+  nav .row { display: flex; align-items: center; justify-content: space-between; height: 62px; gap: 16px; flex-wrap: wrap; }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--head); font-weight: 900; letter-spacing: 0.22em; font-size: 15px;
+  }
+  .brand .orb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff8e8, var(--sun-glow) 35%, var(--ember) 100%);
+    box-shadow: 0 0 18px rgba(255, 140, 42, 0.7), 0 0 36px rgba(232, 74, 26, 0.35);
+    animation: pulse-orb 3.2s ease-in-out infinite;
+  }
+  @keyframes pulse-orb { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  .nav-links { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--sun-glow); }
+  .nav-yt {
+    color: #1a0e04 !important; background: linear-gradient(100deg, var(--sun), var(--gold));
+    padding: 8px 14px; border-radius: 999px; font-size: 12px !important;
+  }
+
+  header { text-align: center; padding: 80px 0 48px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--head); font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(255, 213, 106, 0.35);
+    background: rgba(255, 140, 42, 0.08); padding: 8px 18px; border-radius: 999px; margin-bottom: 24px;
+  }
+  .eyebrow .pip {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--good);
+    box-shadow: 0 0 0 0 rgba(93, 255, 176, 0.55); animation: ping 2.4s infinite;
+  }
+  @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(93,255,176,0.5); } 70% { box-shadow: 0 0 0 10px rgba(93,255,176,0); } 100% { box-shadow: 0 0 0 0 rgba(93,255,176,0); } }
+  h1 {
+    font-family: var(--head); font-weight: 900; font-size: clamp(36px, 7vw, 72px);
+    letter-spacing: 0.12em; margin: 0 0 14px; line-height: 1.05;
+    background: linear-gradient(95deg, var(--sun-glow) 0%, var(--gold) 45%, #fff4e8 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tagline { max-width: 640px; margin: 0 auto 10px; font-size: clamp(17px, 2.4vw, 22px); font-weight: 300; color: var(--ink); }
+  .lede { max-width: 600px; margin: 0 auto 28px; color: var(--muted); font-size: 16px; }
+  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 12px;
+    font-family: var(--head); font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; text-decoration: none; border: 1px solid transparent; transition: transform 0.15s, box-shadow 0.25s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-sun { color: #1a0e04; background: linear-gradient(100deg, var(--sun), var(--gold)); box-shadow: 0 0 28px rgba(255, 140, 42, 0.4); }
+  .btn-ghost { color: var(--ink); background: var(--panel); border-color: var(--brd); backdrop-filter: blur(8px); }
+  .btn-yt { color: #fff; background: #ff0000; box-shadow: 0 0 24px rgba(255, 0, 0, 0.35); }
+
+  section { padding: 56px 0; }
+  .section-head { text-align: center; margin-bottom: 36px; }
+  .section-head h2 {
+    font-family: var(--head); font-size: clamp(24px, 4vw, 36px); letter-spacing: 0.14em;
+    margin: 0 0 10px; color: var(--gold);
+  }
+  .section-head p { color: var(--muted); max-width: 560px; margin: 0 auto; font-size: 15px; }
+
+  .channel-banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+    padding: 22px 26px; border-radius: var(--radius);
+    background: linear-gradient(120deg, rgba(255, 140, 42, 0.12), rgba(232, 74, 26, 0.08));
+    border: 1px solid var(--brd); margin-bottom: 40px;
+  }
+  .channel-banner strong { font-family: var(--head); letter-spacing: 0.1em; font-size: 18px; }
+  .channel-banner span { color: var(--muted); font-size: 14px; display: block; margin-top: 4px; }
+
+  .gallery {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;
+  }
+  .card {
+    border-radius: var(--radius); overflow: hidden;
+    background: var(--panel); border: 1px solid var(--brd);
+    transition: transform 0.2s, box-shadow 0.25s, border-color 0.25s;
+  }
+  .card:hover { transform: translateY(-3px); border-color: rgba(255, 179, 71, 0.45); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+  .card a { color: inherit; text-decoration: none; display: block; }
+  .thumb { position: relative; aspect-ratio: 16/9; background: var(--void-2); overflow: hidden; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .badge {
+    position: absolute; top: 10px; left: 10px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .badge-live { background: rgba(93, 255, 176, 0.2); color: var(--good); border: 1px solid rgba(93, 255, 176, 0.4); }
+  .badge-queue { background: rgba(123, 156, 255, 0.2); color: var(--queue); border: 1px solid rgba(123, 156, 255, 0.4); }
+  .thumb-pending {
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;
+    background: linear-gradient(145deg, #1a1218, #0e0a12);
+    color: var(--muted); font-size: 13px; letter-spacing: 0.06em;
+  }
+  .thumb-pending .ep { font-family: var(--head); font-size: 28px; color: var(--gold); letter-spacing: 0.12em; }
+  .card-body { padding: 14px 16px 18px; }
+  .card-body .ep-label { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+  .card-body h3 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--ink); }
+
+  .pipeline-note {
+    margin-top: 32px; padding: 18px 22px; border-radius: var(--radius);
+    border: 1px dashed rgba(123, 156, 255, 0.35); background: rgba(123, 156, 255, 0.06);
+    color: var(--muted); font-size: 14px; text-align: center;
+  }
+
+  .features {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px;
+  }
+  .feat {
+    padding: 22px; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--brd);
+  }
+  .feat h3 { font-family: var(--head); font-size: 14px; letter-spacing: 0.1em; color: var(--sun-glow); margin: 0 0 8px; }
+  .feat p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  footer {
+    text-align: center; padding: 48px 0 64px; color: var(--faint); font-size: 13px;
+    border-top: 1px solid var(--brd); margin-top: 24px;
+  }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="nebula"></div>
+<div class="rays"></div>
+
+<nav>
+  <div class="wrap row">
+    <div class="brand"><span class="orb"></span> HELIOS</div>
+    <div class="nav-links">
+      <a href="#gallery">Gallery</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="https://github.com/alexar76/helios" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.youtube.com/@My-AI-Factory" target="_blank" rel="noopener" class="nav-yt">YouTube channel ↗</a>
+    </div>
+  </div>
+</nav>
+
+<header class="wrap">
+  <div class="eyebrow"><span class="pip"></span> AIMarket broadcast satellite</div>
+  <h1>HELIOS</h1>
+  <p class="tagline">Template in → voiced video out → YouTube private until you approve.</p>
+  <p class="lede">Self-hosted render + upload pipeline for the ecosystem series. Human gate on every publish. No engagement bots — POST-only to our channel.</p>
+  <div class="cta-row">
+    <a class="btn btn-yt" href="https://www.youtube.com/@My-AI-Factory" target="_blank" rel="noopener">▶ Watch on @My-AI-Factory</a>
+    <a class="btn btn-sun" href="https://www.youtube.com/playlist?list=PLQAJcI3MYJxM" target="_blank" rel="noopener">Full playlist</a>
+    <a class="btn btn-ghost" href="https://github.com/alexar76/helios" target="_blank" rel="noopener">Source code</a>
+  </div>
+</header>
+
+<section id="gallery" class="wrap">
+  <div class="channel-banner">
+    <div>
+      <strong>@My-AI-Factory</strong>
+      <span>Ecosystem explainers — Factory, Alien Monitor, WARDEN, ARGUS, oracles, academies, and more.</span>
+    </div>
+    <a class="btn btn-yt" href="https://www.youtube.com/@My-AI-Factory" target="_blank" rel="noopener">Subscribe ↗</a>
+  </div>
+
+  <div class="section-head">
+    <h2>Published episodes</h2>
+    <p>Season 1 E00–E09 — rendered by PromoMaterials, delivered via HELIOS pipeline. Click to watch on YouTube.</p>
+  </div>
+
+  <div class="gallery" id="published-gallery"></div>
+</section>
+
+<section id="pipeline" class="wrap">
+  <div class="section-head">
+    <h2>In the queue</h2>
+    <p>Rendered locally, awaiting HELIOS backfill upload (private) → Studio review → <code>helios approve</code> → public.</p>
+  </div>
+
+  <div class="gallery" id="queue-gallery"></div>
+
+  <div class="pipeline-note">
+    <strong>Season 2</strong> — 28 episodes rendered in PromoMaterials (<code>out/season2/</code>). Backfill batches ~9/day via <code>helios backfill-enqueue</code>.
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section-head">
+    <h2>How it works</h2>
+  </div>
+  <div class="features">
+    <div class="feat"><h3>Template-only</h3><p>Yaml scripts + assets from PromoMaterials. Voiceover text is fixed — LLM Director reviews metadata only.</p></div>
+    <div class="feat"><h3>Private-first</h3><p>Every upload starts private. Operator approves in YouTube Studio, then <code>helios approve</code> syncs state.</p></div>
+    <div class="feat"><h3>Alien Monitor</h3><p>Live channel stats on the ecosystem graph — click the HELIOS node in <a href="https://magic-ai-factory.com/monitor/" target="_blank" rel="noopener">Alien Monitor</a>.</p></div>
+    <div class="feat"><h3>DIOSCURI feed</h3><p>Release events can enqueue syndication jobs when <code>HELIOS_SYNDICATION=1</code>.</p></div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p>
+    <a href="https://github.com/alexar76/helios">HELIOS</a> · MIT ·
+    <a href="https://github.com/alexar76/aicom">AICOM ecosystem</a> ·
+    <a href="https://www.youtube.com/@My-AI-Factory">@My-AI-Factory</a>
+  </p>
+</footer>
+
+<script>
+const CHANNEL = "https://www.youtube.com/@My-AI-Factory";
+
+const PUBLISHED = [
+  { ep: "E00", id: "yLrv1jCgtzQ", title: "I open-sourced an entire AI agent economy — here's everything in 40 seconds" },
+  { ep: "E01", id: "a-0qOtauqvQ", title: "One prompt → deployed web app: my self-hosted 13-agent pipeline" },
+  { ep: "E02", id: "PFtip0kEWSM", title: "A live 3D map of an AI agent economy (open source)" },
+  { ep: "E03", id: "wYzdoZYTvnk", title: "WARDEN: an MCP firewall that blocks poisoned tool descriptions" },
+  { ep: "E04", id: "w0wts_S1ats", title: "ARGUS: the demand-side agent that discovers, pays for, and invokes capabilities" },
+  { ep: "E05", id: "uSAButvejjY", title: "Publish an AI capability in 15 minutes — get paid per invoke" },
+  { ep: "E06", id: "fvlKzSEMmRI", title: "17 math oracles as MCP tools — every result signed and verifiable" },
+  { ep: "E07", id: "ryafj10Grsg", title: "10 free academies — learn MCP, LangGraph, and agent security by building" },
+  { ep: "E08", id: "Z_DqQq2auN0", title: "Factory IQ: self-learning metrics for multi-agent builds" },
+  { ep: "E09", id: "ZOyNYRKUnm0", title: "Agent Arena: XP, streaks, and badges for real agent runs" },
+];
+
+const QUEUED = [
+  { ep: "E10", title: "LinkedIn Profile Coach — 24 sections, your own LLM keys" },
+  { ep: "E11", title: "DIOSCURI: Telegram + Discord bots with an injection firewall" },
+  { ep: "E12", title: "Provably-fair lottery for AI agents on Base" },
+];
+
+function publishedCard(v) {
+  const url = `https://www.youtube.com/watch?v=${v.id}`;
+  const thumb = `https://img.youtube.com/vi/${v.id}/mqdefault.jpg`;
+  return `<article class="card">
+    <a href="${url}" target="_blank" rel="noopener">
+      <div class="thumb">
+        <img src="${thumb}" alt="${v.ep}: ${v.title}" loading="lazy" width="320" height="180" />
+        <span class="badge badge-live">Live</span>
+      </div>
+      <div class="card-body">
+        <div class="ep-label">Season 1 · ${v.ep}</div>
+        <h3>${v.title}</h3>
+      </div>
+    </a>
+  </article>`;
+}
+
+function queuedCard(v) {
+  return `<article class="card">
+    <div class="thumb thumb-pending">
+      <span class="ep">${v.ep}</span>
+      <span class="badge badge-queue">Rendered · in queue</span>
+    </div>
+    <div class="card-body">
+      <div class="ep-label">Season 1 · ${v.ep}</div>
+      <h3>${v.title}</h3>
+    </div>
+  </article>`;
+}
+
+document.getElementById("published-gallery").innerHTML = PUBLISHED.map(publishedCard).join("");
+document.getElementById("queue-gallery").innerHTML = QUEUED.map(queuedCard).join("");
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+id: release-short
+defaults:
+  voice: Daniel
+  voice_rate: 175
+  aspect: "16:9"
+segments:
+  - vo: "{repo} {tag} just shipped. Open source, MIT."
+    caption: "{repo} · {tag}"
+    visual:
+      type: video
+      path: "hero-demo-preview.gif"
+      loop: true
+  - vo: "{summary}"
+    caption: WHAT SHIPPED
+    visual:
+      type: image
+      path: "course-hero-16x9.png"
+      kenburns: true
+  - vo: "Full release notes on GitHub. Star if useful."
+    caption: "github.com/alexar76/{repo}"
+    visual:
+      type: card
+      color: "#0b0e17"
+      text: "{url}"
