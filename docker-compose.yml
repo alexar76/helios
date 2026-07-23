@@ -1,0 +1,70 @@
+# HELIOS — Docker Compose deployment.
+#
+# Setup:
+#   cp helios.config.example.yaml helios.config.yaml
+#   cp .env.example .env   # YOUTUBE_CLIENT_SECRET, YOUTUBE_TOKEN, DEEPSEEK_API_KEY
+#   docker compose up -d --build
+#
+# Worker: schedule `helios worker` (cron or helios-worker sidecar).
+# Combined DIOSCURI+HELIOS deploy with shared MNEMOSYNE + queue:
+#   docker volume create aicom-ecosystem-data
+#   docker compose -f dioscuri/docker-compose.yml -f helios/docker-compose.yml \
+#     -f docs/ecosystem/docker-compose.cognition.yml up -d --build
+#
+# IMPORTANT: `docker compose up` here starts ONLY `helios serve` (HTTP /health).
+# Use docs/ecosystem/docker-compose.cognition.yml for the worker sidecar, or host cron.
+
+services:
+  helios:
+    build: .
+    image: aicom/helios:0.1
+    container_name: helios
+    restart: unless-stopped
+    stop_grace_period: 30s
+    init: true
+
+    env_file: .env
+
+    environment:
+      HELIOS_DATA_DIR: /data
+      HELIOS_CONFIG: /app/helios.config.yaml
+
+    ports:
+      - "8791:8791"
+
+    volumes:
+      - ./helios.config.yaml:/app/helios.config.yaml:ro
+      - ./templates:/app/templates:ro
+      - ./assets:/app/assets:ro
+      - ./data:/data
+      # Optional PromoMaterials backfill (leave empty/unused for isolated deploy)
+      # - ../../PromoMaterials:/promo:ro
+
+    read_only: true
+    tmpfs:
+      - /tmp
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+    mem_limit: 2048m
+    cpus: 1.5
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8791/health').read()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+    command: ["helios", "serve", "--port", "8791"]
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# data/ bind-mounted from host (./data) — see volumes on helios service
