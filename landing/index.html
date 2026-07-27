@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HELIOS — broadcast layer of the AIMarket ecosystem</title>
+<meta name="description" content="Template in, voiced video out, queued to YouTube — private by default until you approve. Self-hosted broadcast pipeline for the AICOM open agent economy." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="HELIOS — ecosystem broadcast pipeline" />
+<meta property="og:description" content="Render MP4 from yaml templates, upload to YouTube private-first, human approve → public. Watch the ecosystem series on @My-AI-Factory." />
+<meta property="og:url" content="https://alexar76.github.io/helios/" />
+<meta property="og:image" content="https://img.youtube.com/vi/yLrv1jCgtzQ/maxresdefault.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --void: #060508;
+    --void-2: #0e0a12;
+    --panel: rgba(18, 12, 22, 0.72);
+    --brd: rgba(255, 160, 80, 0.22);
+    --ink: #fff4e8;
+    --muted: #c4a88a;
+    --faint: #8a7060;
+    --sun: #ff8c2a;
+    --sun-glow: #ffb347;
+    --gold: #ffd56a;
+    --ember: #e84a1a;
+    --good: #5dffb0;
+    --queue: #7b9cff;
+    --head: 'Cinzel', Georgia, serif;
+    --body: 'Outfit', system-ui, sans-serif;
+    --maxw: 1180px;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--void); color: var(--ink);
+    font-family: var(--body); font-size: 17px; line-height: 1.58;
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  .nebula {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(50vw 50vw at 18% 12%, rgba(255, 140, 42, 0.18), transparent 62%),
+      radial-gradient(44vw 44vw at 82% 20%, rgba(232, 74, 26, 0.12), transparent 60%),
+      radial-gradient(60vw 60vw at 50% 100%, rgba(255, 213, 106, 0.07), transparent 55%);
+  }
+  .rays {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.35;
+    background: conic-gradient(from 200deg at 14% 8%, transparent 0deg, rgba(255, 179, 71, 0.08) 18deg, transparent 36deg, rgba(255, 140, 42, 0.06) 52deg, transparent 70deg);
+  }
+  .wrap { position: relative; z-index: 2; max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(14px);
+    background: linear-gradient(180deg, rgba(6,5,8,0.94), rgba(6,5,8,0.5));
+    border-bottom: 1px solid var(--brd);
+  }
+  nav .row { display: flex; align-items: center; justify-content: space-between; height: 62px; gap: 16px; flex-wrap: wrap; }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--head); font-weight: 900; letter-spacing: 0.22em; font-size: 15px;
+  }
+  .brand .orb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff8e8, var(--sun-glow) 35%, var(--ember) 100%);
+    box-shadow: 0 0 18px rgba(255, 140, 42, 0.7), 0 0 36px rgba(232, 74, 26, 0.35);
+    animation: pulse-orb 3.2s ease-in-out infinite;
+  }
+  @keyframes pulse-orb { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  .nav-links { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--sun-glow); }
+  .nav-yt {
+    color: #1a0e04 !important; background: linear-gradient(100deg, var(--sun), var(--gold));
+    padding: 8px 14px; border-radius: 999px; font-size: 12px !important;
+  }
+  .langsw { display: inline-flex; gap: 2px; border: 1px solid var(--brd); border-radius: 999px; padding: 3px; background: rgba(255,140,42,0.06); }
+  .langsw button { background: none; border: 0; color: var(--muted); font: 600 12px/1 var(--body); letter-spacing: 0.08em; padding: 5px 9px; border-radius: 999px; cursor: pointer; }
+  .langsw button.on { background: rgba(255, 140, 42, 0.18); color: var(--gold); }
+
+  header { text-align: center; padding: 80px 0 48px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--head); font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(255, 213, 106, 0.35);
+    background: rgba(255, 140, 42, 0.08); padding: 8px 18px; border-radius: 999px; margin-bottom: 24px;
+  }
+  .eyebrow .pip {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--good);
+    box-shadow: 0 0 0 0 rgba(93, 255, 176, 0.55); animation: ping 2.4s infinite;
+  }
+  @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(93,255,176,0.5); } 70% { box-shadow: 0 0 0 10px rgba(93,255,176,0); } 100% { box-shadow: 0 0 0 0 rgba(93,255,176,0); } }
+  h1 {
+    font-family: var(--head); font-weight: 900; font-size: clamp(36px, 7vw, 72px);
+    letter-spacing: 0.12em; margin: 0 0 14px; line-height: 1.05;
+    background: linear-gradient(95deg, var(--sun-glow) 0%, var(--gold) 45%, #fff4e8 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tagline { max-width: 640px; margin: 0 auto 10px; font-size: clamp(17px, 2.4vw, 22px); font-weight: 300; color: var(--ink); }
+  .lede { max-width: 600px; margin: 0 auto 28px; color: var(--muted); font-size: 16px; }
+  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 12px;
+    font-family: var(--head); font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; text-decoration: none; border: 1px solid transparent; transition: transform 0.15s, box-shadow 0.25s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-sun { color: #1a0e04; background: linear-gradient(100deg, var(--sun), var(--gold)); box-shadow: 0 0 28px rgba(255, 140, 42, 0.4); }
+  .btn-ghost { color: var(--ink); background: var(--panel); border-color: var(--brd); backdrop-filter: blur(8px); }
+  .btn-yt { color: #fff; background: #ff0000; box-shadow: 0 0 24px rgba(255, 0, 0, 0.35); }
+
+  section { padding: 56px 0; }
+  .section-head { text-align: center; margin-bottom: 36px; }
+  .section-head h2 {
+    font-family: var(--head); font-size: clamp(24px, 4vw, 36px); letter-spacing: 0.14em;
+    margin: 0 0 10px; color: var(--gold);
+  }
+  .section-head p { color: var(--muted); max-width: 560px; margin: 0 auto; font-size: 15px; }
+
+  .channel-banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+    padding: 22px 26px; border-radius: var(--radius);
+    background: linear-gradient(120deg, rgba(255, 140, 42, 0.12), rgba(232, 74, 26, 0.08));
+    border: 1px solid var(--brd); margin-bottom: 40px;
+  }
+  .channel-banner strong { font-family: var(--head); letter-spacing: 0.1em; font-size: 18px; }
+  .channel-banner span { color: var(--muted); font-size: 14px; display: block; margin-top: 4px; }
+
+  .gallery {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;
+  }
+  .card {
+    border-radius: var(--radius); overflow: hidden;
+    background: var(--panel); border: 1px solid var(--brd);
+    transition: transform 0.2s, box-shadow 0.25s, border-color 0.25s;
+  }
+  .card:hover { transform: translateY(-3px); border-color: rgba(255, 179, 71, 0.45); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+  .card a { color: inherit; text-decoration: none; display: block; }
+  .thumb { position: relative; aspect-ratio: 16/9; background: var(--void-2); overflow: hidden; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .badge {
+    position: absolute; top: 10px; left: 10px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .badge-live { background: rgba(93, 255, 176, 0.2); color: var(--good); border: 1px solid rgba(93, 255, 176, 0.4); }
+  .badge-queue { background: rgba(123, 156, 255, 0.2); color: var(--queue); border: 1px solid rgba(123, 156, 255, 0.4); }
+  .thumb-pending {
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;
+    background: linear-gradient(145deg, #1a1218, #0e0a12);
+    color: var(--muted); font-size: 13px; letter-spacing: 0.06em;
+  }
+  .thumb-pending .ep { font-family: var(--head); font-size: 28px; color: var(--gold); letter-spacing: 0.12em; }
+  .card-body { padding: 14px 16px 18px; }
+  .card-body .ep-label { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+  .card-body h3 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--ink); }
+
+  .pipeline-note {
+    margin-top: 32px; padding: 18px 22px; border-radius: var(--radius);
+    border: 1px dashed rgba(123, 156, 255, 0.35); background: rgba(123, 156, 255, 0.06);
+    color: var(--muted); font-size: 14px; text-align: center;
+  }
+
+  .features {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px;
+  }
+  .feat {
+    padding: 22px; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--brd);
+  }
+  .feat h3 { font-family: var(--head); font-size: 14px; letter-spacing: 0.1em; color: var(--sun-glow); margin: 0 0 8px; }
+  .feat p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  footer {
+    text-align: center; padding: 48px 0 64px; color: var(--faint); font-size: 13px;
+    border-top: 1px solid var(--brd); margin-top: 24px;
+  }
+  footer a { color: var(--muted); }
+
+  /* ── Mobile ─────────────────────────────────────────────── */
+  @media (max-width: 720px) {
+    body { font-size: 16px; }
+    .wrap { padding: 0 16px; }
+    /* nav wraps to two tiers (brand row + links row) instead of clipping a fixed height */
+    nav .row { height: auto; min-height: 56px; padding: 10px 0; row-gap: 8px; }
+    .nav-links { width: 100%; justify-content: center; gap: 10px 14px; }
+    .nav-links a { font-size: 12px; letter-spacing: 0.06em; }
+    .langsw { margin: 2px 0; }
+    header { padding: 44px 0 30px; }
+    .tagline { font-size: 18px; }
+    .lede { font-size: 15px; }
+    section { padding: 40px 0; }
+    .section-head { margin-bottom: 26px; }
+    .channel-banner { padding: 18px; gap: 14px; }
+    .cta-row { gap: 10px; }
+    .cta-row .btn { flex: 1 1 100%; justify-content: center; }
+  }
+  @media (max-width: 420px) {
+    .nav-links { gap: 8px 10px; }
+    .nav-links a { font-size: 11px; }
+    .langsw button { padding: 5px 7px; font-size: 11px; }
+    .btn { padding: 12px 16px; font-size: 11px; }
+    h1 { letter-spacing: 0.08em; }
+    .gallery { gap: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="nebula"></div>
+<div class="rays"></div>
+
+<nav>
+  <div class="wrap row">
+    <div class="brand"><span class="orb"></span> HELIOS</div>
+    <div class="nav-links">
+      <a href="#gallery" data-i18n="nav_gallery">Gallery</a>
+      <a href="#pipeline" data-i18n="nav_pipeline">Pipeline</a>
+      <a href="https://github.com/alexar76/helios" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.youtube.com/@My-AI-Factory" target="_blank" rel="noopener" class="nav-yt" data-i18n="nav_yt">YouTube channel ↗</a>
+      <span class="langsw" aria-label="Language">
+        <button type="button" data-lang="en">EN</button><button type="button" data-lang="ru">RU</button><button type="button" data-lang="es">ES</button><button type="button" data-lang="fr">FR</button><button type="button" data-lang="zh">ZH</button>
+      </span>
+    </div>
+  </div>
+</nav>
+
+<header class="wrap">
+  <div class="eyebrow"><span class="pip"></span> <span data-i18n="eyebrow">AIMarket broadcast satellite</span></div>
+  <h1>HELIOS</h1>
+  <p class="tagline" data-i18n="tagline">Template in → voiced video out → YouTube private by default until you approve.</p>
+  <p class="lede" data-i18n="lede">Self-hosted render + upload pipeline for the ecosystem series. Human gate on every publish. No engagement bots — POST-only to our channel.</p>
+  <div class="cta-row">
+    <a class="btn btn-yt" href="https://www.youtube.com/@My-AI-Factory" target="_blank" rel="noopener" data-i18n="cta_watch">▶ Watch on @My-AI-Factory</a>
+    <a class="btn btn-sun" href="https://www.youtube.com/playlist?list=PLQAJcI3MYJxM" target="_blank" rel="noopener" data-i18n="cta_playlist">Full playlist</a>
+    <a class="btn btn-ghost" href="https://github.com/alexar76/helios" target="_blank" rel="noopener" data-i18n="cta_source">Source code</a>
+  </div>
+</header>
+
+<section id="gallery" class="wrap">
+  <div class="channel-banner">
+    <div>
+      <strong>@My-AI-Factory</strong>
+      <span data-i18n="banner_desc">Ecosystem explainers — Factory, Alien Monitor, WARDEN, ARGUS, oracles, academies, and more.</span>
+    </div>
+    <a class="btn btn-yt" href="https://www.youtube.com/@My-AI-Factory" target="_blank" rel="noopener" data-i18n="subscribe">Subscribe ↗</a>
+  </div>
+
+  <div class="section-head">
+    <h2 data-i18n="pub_title">Published episodes</h2>
+    <p data-i18n="pub_sub">Season 1 E00–E09 — rendered by PromoMaterials, delivered via HELIOS pipeline. Click to watch on YouTube.</p>
+  </div>
+
+  <div class="gallery" id="published-gallery"></div>
+</section>
+
+<section id="pipeline" class="wrap">
+  <div class="section-head">
+    <h2 data-i18n="queue_title">In the queue</h2>
+    <p data-i18n-html="queue_sub">Rendered locally, awaiting HELIOS backfill upload (private) → Studio review → <code>helios approve</code> → public.</p>
+  </div>
+
+  <div class="gallery" id="queue-gallery"></div>
+
+  <div class="pipeline-note" data-i18n-html="s2_note">
+    <strong>Season 2</strong> — 28 episodes rendered in PromoMaterials (<code>out/season2/</code>). Backfill batches ~9/day via <code>helios backfill-enqueue</code>.
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section-head">
+    <h2 data-i18n="how_title">How it works</h2>
+  </div>
+  <div class="features">
+    <div class="feat"><h3 data-i18n="f1_t">Template-only</h3><p data-i18n="f1_d">Yaml scripts + assets from PromoMaterials. Voiceover text is fixed — LLM Director reviews metadata only.</p></div>
+    <div class="feat"><h3 data-i18n="f2_t">Private-first</h3><p data-i18n-html="f2_d">Every upload starts private. Operator approves in YouTube Studio, then <code>helios approve</code> syncs state.</p></div>
+    <div class="feat"><h3 data-i18n="f3_t">Alien Monitor</h3><p data-i18n-html="f3_d">Live channel stats on the ecosystem graph — click the HELIOS node in <a href="https://magic-ai-factory.com/monitor/" target="_blank" rel="noopener">Alien Monitor</a>.</p></div>
+    <div class="feat"><h3 data-i18n="f4_t">DIOSCURI feed</h3><p data-i18n-html="f4_d">Release events can enqueue syndication jobs when <code>HELIOS_SYNDICATION=1</code>.</p></div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p>
+    <a href="https://github.com/alexar76/helios">HELIOS</a> · MIT ·
+    <a href="https://github.com/alexar76/aicom">AICOM ecosystem</a> ·
+    <a href="https://www.youtube.com/@My-AI-Factory">@My-AI-Factory</a>
+  </p>
+</footer>
+
+<script>
+const CHANNEL = "https://www.youtube.com/@My-AI-Factory";
+
+const PUBLISHED = [
+  { ep: "E00", id: "yLrv1jCgtzQ", title: "I open-sourced an entire AI agent economy — here's everything in 40 seconds" },
+  { ep: "E01", id: "a-0qOtauqvQ", title: "One prompt → deployed web app: my self-hosted 13-agent pipeline" },
+  { ep: "E02", id: "PFtip0kEWSM", title: "A live 3D map of an AI agent economy (open source)" },
+  { ep: "E03", id: "wYzdoZYTvnk", title: "WARDEN: an MCP firewall that blocks poisoned tool descriptions" },
+  { ep: "E04", id: "w0wts_S1ats", title: "ARGUS: the demand-side agent that discovers, pays for, and invokes capabilities" },
+  { ep: "E05", id: "uSAButvejjY", title: "Publish an AI capability in 15 minutes — get paid per invoke" },
+  { ep: "E06", id: "fvlKzSEMmRI", title: "17 math oracles as MCP tools — every result signed and verifiable" },
+  { ep: "E07", id: "ryafj10Grsg", title: "10 free academies — learn MCP, LangGraph, and agent security by building" },
+  { ep: "E08", id: "Z_DqQq2auN0", title: "Factory IQ: self-learning metrics for multi-agent builds" },
+  { ep: "E09", id: "ZOyNYRKUnm0", title: "Agent Arena: XP, streaks, and badges for real agent runs" },
+];
+
+const QUEUED = [
+  { ep: "E10", title: "LinkedIn Profile Coach — 24 sections, your own LLM keys" },
+  { ep: "E11", title: "DIOSCURI: Telegram + Discord bots with an injection firewall" },
+  { ep: "E12", title: "Provably-fair lottery for AI agents on Base" },
+];
+
+const I18N = {
+  en: {
+    nav_gallery:"Gallery", nav_pipeline:"Pipeline", nav_yt:"YouTube channel ↗",
+    eyebrow:"AIMarket broadcast satellite",
+    tagline:"Template in → voiced video out → YouTube private by default until you approve.",
+    lede:"Self-hosted render + upload pipeline for the ecosystem series. Human gate on every publish. No engagement bots — POST-only to our channel.",
+    cta_watch:"▶ Watch on @My-AI-Factory", cta_playlist:"Full playlist", cta_source:"Source code",
+    banner_desc:"Ecosystem explainers — Factory, Alien Monitor, WARDEN, ARGUS, oracles, academies, and more.", subscribe:"Subscribe ↗",
+    pub_title:"Published episodes", pub_sub:"Season 1 E00–E09 — rendered by PromoMaterials, delivered via HELIOS pipeline. Click to watch on YouTube.",
+    queue_title:"In the queue", queue_sub:"Rendered locally, awaiting HELIOS backfill upload (private) → Studio review → <code>helios approve</code> → public.",
+    s2_note:"<strong>Season 2</strong> — 28 episodes rendered in PromoMaterials (<code>out/season2/</code>). Backfill batches ~9/day via <code>helios backfill-enqueue</code>.",
+    how_title:"How it works",
+    f1_t:"Template-only", f1_d:"Yaml scripts + assets from PromoMaterials. Voiceover text is fixed — LLM Director reviews metadata only.",
+    f2_t:"Private-first", f2_d:"Every upload starts private. Operator approves in YouTube Studio, then <code>helios approve</code> syncs state.",
+    f3_t:"Alien Monitor", f3_d:"Live channel stats on the ecosystem graph — click the HELIOS node in <a href='https://magic-ai-factory.com/monitor/' target='_blank' rel='noopener'>Alien Monitor</a>.",
+    f4_t:"DIOSCURI feed", f4_d:"Release events can enqueue syndication jobs when <code>HELIOS_SYNDICATION=1</code>.",
+    season:"Season 1", live:"Live", badge_queue:"Rendered · in queue",
+  },
+  ru: {
+    nav_gallery:"Галерея", nav_pipeline:"Пайплайн", nav_yt:"YouTube-канал ↗",
+    eyebrow:"Вещательный сателлит AIMarket",
+    tagline:"Шаблон на входе → озвученное видео на выходе → YouTube приватно по умолчанию, пока ты не одобришь.",
+    lede:"Самостоятельно размещаемый пайплайн рендера и загрузки для сериала об экосистеме. Человек одобряет каждую публикацию. Без ботов вовлечения — только POST на наш канал.",
+    cta_watch:"▶ Смотреть на @My-AI-Factory", cta_playlist:"Полный плейлист", cta_source:"Исходный код",
+    banner_desc:"Объяснения экосистемы — Factory, Alien Monitor, WARDEN, ARGUS, оракулы, академии и не только.", subscribe:"Подписаться ↗",
+    pub_title:"Опубликованные эпизоды", pub_sub:"Сезон 1, E00–E09 — отрендерено в PromoMaterials, доставлено через пайплайн HELIOS. Нажми, чтобы смотреть на YouTube.",
+    queue_title:"В очереди", queue_sub:"Отрендерено локально, ждёт приватной загрузки через HELIOS backfill → проверку в Studio → <code>helios approve</code> → публикацию.",
+    s2_note:"<strong>Сезон 2</strong> — 28 эпизодов отрендерено в PromoMaterials (<code>out/season2/</code>). Backfill партиями ~9/день через <code>helios backfill-enqueue</code>.",
+    how_title:"Как это работает",
+    f1_t:"Только шаблоны", f1_d:"Yaml-скрипты + ассеты из PromoMaterials. Текст озвучки фиксирован — LLM Director проверяет только метаданные.",
+    f2_t:"Приватность по умолчанию", f2_d:"Каждая загрузка начинается приватной. Оператор одобряет в YouTube Studio, затем <code>helios approve</code> синхронизирует состояние.",
+    f3_t:"Alien Monitor", f3_d:"Статистика канала вживую на графе экосистемы — нажми на узел HELIOS в <a href='https://magic-ai-factory.com/monitor/' target='_blank' rel='noopener'>Alien Monitor</a>.",
+    f4_t:"Лента DIOSCURI", f4_d:"События релизов могут ставить в очередь задачи синдикации при <code>HELIOS_SYNDICATION=1</code>.",
+    season:"Сезон 1", live:"Вживую", badge_queue:"Отрендерено · в очереди",
+  },
+  es: {
+    nav_gallery:"Galería", nav_pipeline:"Pipeline", nav_yt:"Canal de YouTube ↗",
+    eyebrow:"Satélite de difusión de AIMarket",
+    tagline:"Plantilla de entrada → video con voz de salida → YouTube privado por defecto hasta que apruebes.",
+    lede:"Pipeline autoalojado de render y subida para la serie del ecosistema. Control humano en cada publicación. Sin bots de engagement — solo POST a nuestro canal.",
+    cta_watch:"▶ Ver en @My-AI-Factory", cta_playlist:"Lista completa", cta_source:"Código fuente",
+    banner_desc:"Explicaciones del ecosistema — Factory, Alien Monitor, WARDEN, ARGUS, oráculos, academias y más.", subscribe:"Suscribirse ↗",
+    pub_title:"Episodios publicados", pub_sub:"Temporada 1 E00–E09 — renderizado por PromoMaterials, entregado vía pipeline HELIOS. Haz clic para ver en YouTube.",
+    queue_title:"En cola", queue_sub:"Renderizado localmente, esperando subida privada por HELIOS backfill → revisión en Studio → <code>helios approve</code> → público.",
+    s2_note:"<strong>Temporada 2</strong> — 28 episodios renderizados en PromoMaterials (<code>out/season2/</code>). Backfill en lotes de ~9/día vía <code>helios backfill-enqueue</code>.",
+    how_title:"Cómo funciona",
+    f1_t:"Solo plantillas", f1_d:"Scripts Yaml + assets de PromoMaterials. El texto de voz es fijo — el LLM Director solo revisa metadatos.",
+    f2_t:"Privado primero", f2_d:"Cada subida empieza privada. El operador aprueba en YouTube Studio, luego <code>helios approve</code> sincroniza el estado.",
+    f3_t:"Alien Monitor", f3_d:"Estadísticas del canal en vivo en el grafo del ecosistema — haz clic en el nodo HELIOS en <a href='https://magic-ai-factory.com/monitor/' target='_blank' rel='noopener'>Alien Monitor</a>.",
+    f4_t:"Feed de DIOSCURI", f4_d:"Los eventos de release pueden encolar trabajos de sindicación cuando <code>HELIOS_SYNDICATION=1</code>.",
+    season:"Temporada 1", live:"En vivo", badge_queue:"Renderizado · en cola",
+  },
+  fr: {
+    nav_gallery:"Galerie", nav_pipeline:"Pipeline", nav_yt:"Chaîne YouTube ↗",
+    eyebrow:"Satellite de diffusion AIMarket",
+    tagline:"Modèle en entrée → vidéo voix off en sortie → YouTube privé par défaut jusqu'à ton approbation.",
+    lede:"Pipeline auto-hébergé de rendu et d'upload pour la série de l'écosystème. Validation humaine à chaque publication. Pas de bots d'engagement — POST uniquement vers notre chaîne.",
+    cta_watch:"▶ Regarder sur @My-AI-Factory", cta_playlist:"Playlist complète", cta_source:"Code source",
+    banner_desc:"Explications de l'écosystème — Factory, Alien Monitor, WARDEN, ARGUS, oracles, académies, et plus.", subscribe:"S'abonner ↗",
+    pub_title:"Épisodes publiés", pub_sub:"Saison 1 E00–E09 — rendu par PromoMaterials, livré via le pipeline HELIOS. Clique pour regarder sur YouTube.",
+    queue_title:"Dans la file", queue_sub:"Rendu en local, en attente d'upload privé via HELIOS backfill → revue dans Studio → <code>helios approve</code> → public.",
+    s2_note:"<strong>Saison 2</strong> — 28 épisodes rendus dans PromoMaterials (<code>out/season2/</code>). Backfill par lots d'environ 9/jour via <code>helios backfill-enqueue</code>.",
+    how_title:"Comment ça marche",
+    f1_t:"Modèles uniquement", f1_d:"Scripts Yaml + assets de PromoMaterials. Le texte de la voix off est figé — le LLM Director ne revoit que les métadonnées.",
+    f2_t:"Privé d'abord", f2_d:"Chaque upload démarre en privé. L'opérateur valide dans YouTube Studio, puis <code>helios approve</code> synchronise l'état.",
+    f3_t:"Alien Monitor", f3_d:"Statistiques de la chaîne en direct sur le graphe de l'écosystème — clique sur le nœud HELIOS dans <a href='https://magic-ai-factory.com/monitor/' target='_blank' rel='noopener'>Alien Monitor</a>.",
+    f4_t:"Flux DIOSCURI", f4_d:"Les événements de release peuvent mettre en file des tâches de syndication quand <code>HELIOS_SYNDICATION=1</code>.",
+    season:"Saison 1", live:"En direct", badge_queue:"Rendu · en file",
+  },
+  zh: {
+    nav_gallery:"画廊", nav_pipeline:"流水线", nav_yt:"YouTube 频道 ↗",
+    eyebrow:"AIMarket 广播卫星",
+    tagline:"输入模板 → 输出配音视频 → YouTube 默认私有，直到你批准。",
+    lede:"面向生态系统系列的自托管渲染与上传流水线。每次发布都有人工把关。没有互动机器人——仅向我们的频道 POST。",
+    cta_watch:"▶ 在 @My-AI-Factory 观看", cta_playlist:"完整播放列表", cta_source:"源代码",
+    banner_desc:"生态系统讲解——Factory、Alien Monitor、WARDEN、ARGUS、预言机、学院等等。", subscribe:"订阅 ↗",
+    pub_title:"已发布剧集", pub_sub:"第 1 季 E00–E09——由 PromoMaterials 渲染，经 HELIOS 流水线交付。点击到 YouTube 观看。",
+    queue_title:"队列中", queue_sub:"本地已渲染，等待经 HELIOS backfill 私有上传 → 在 Studio 审核 → <code>helios approve</code> → 公开。",
+    s2_note:"<strong>第 2 季</strong>——28 集已在 PromoMaterials 渲染（<code>out/season2/</code>）。通过 <code>helios backfill-enqueue</code> 每天约 9 集分批回填。",
+    how_title:"工作原理",
+    f1_t:"仅模板", f1_d:"来自 PromoMaterials 的 Yaml 脚本 + 素材。配音文本固定——LLM Director 只审核元数据。",
+    f2_t:"私有优先", f2_d:"每次上传都以私有开始。运维在 YouTube Studio 批准，然后 <code>helios approve</code> 同步状态。",
+    f3_t:"Alien Monitor", f3_d:"生态系统图上的实时频道统计——点击 <a href='https://magic-ai-factory.com/monitor/' target='_blank' rel='noopener'>Alien Monitor</a> 中的 HELIOS 节点。",
+    f4_t:"DIOSCURI 订阅流", f4_d:"当 <code>HELIOS_SYNDICATION=1</code> 时，发布事件可将联合发布任务加入队列。",
+    season:"第 1 季", live:"实时", badge_queue:"已渲染 · 排队中",
+  },
+};
+const SUP = ["en", "ru", "es", "fr", "zh"];
+let lang = "en";
+try {
+  const saved = localStorage.getItem("helios-landing-lang");
+  if (saved && SUP.includes(saved)) lang = saved;
+  else { const n = (navigator.language || "en").slice(0, 2).toLowerCase(); if (SUP.includes(n)) lang = n; }
+} catch (_) {}
+const t = k => (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k;
+
+function publishedCard(v) {
+  const url = `https://www.youtube.com/watch?v=${v.id}`;
+  const thumb = `https://img.youtube.com/vi/${v.id}/mqdefault.jpg`;
+  return `<article class="card">
+    <a href="${url}" target="_blank" rel="noopener">
+      <div class="thumb">
+        <img src="${thumb}" alt="${v.ep}: ${v.title}" loading="lazy" width="320" height="180" />
+        <span class="badge badge-live">${t("live")}</span>
+      </div>
+      <div class="card-body">
+        <div class="ep-label">${t("season")} · ${v.ep}</div>
+        <h3>${v.title}</h3>
+      </div>
+    </a>
+  </article>`;
+}
+
+function queuedCard(v) {
+  return `<article class="card">
+    <div class="thumb thumb-pending">
+      <span class="ep">${v.ep}</span>
+      <span class="badge badge-queue">${t("badge_queue")}</span>
+    </div>
+    <div class="card-body">
+      <div class="ep-label">${t("season")} · ${v.ep}</div>
+      <h3>${v.title}</h3>
+    </div>
+  </article>`;
+}
+
+function renderGalleries() {
+  document.getElementById("published-gallery").innerHTML = PUBLISHED.map(publishedCard).join("");
+  document.getElementById("queue-gallery").innerHTML = QUEUED.map(queuedCard).join("");
+}
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(el => { const v = t(el.getAttribute("data-i18n")); if (v) el.textContent = v; });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { const v = t(el.getAttribute("data-i18n-html")); if (v) el.innerHTML = v; });
+  document.querySelectorAll(".langsw button").forEach(b => b.classList.toggle("on", b.dataset.lang === lang));
+  renderGalleries();
+}
+
+function setLang(l) {
+  if (!SUP.includes(l)) return;
+  lang = l;
+  try { localStorage.setItem("helios-landing-lang", l); } catch (_) {}
+  applyLang();
+}
+document.querySelectorAll(".langsw button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
+
+applyLang();
+</script>
+</body>
+</html>

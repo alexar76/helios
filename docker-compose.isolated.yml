@@ -1,0 +1,65 @@
+# Host overlay for HELIOS on the oracle/cognition box.
+# Shares MNEMOSYNE + YouTube creds via /root/ecosystem-data (not the local ./data).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.isolated.yml up -d --build
+
+services:
+  helios:
+    volumes:
+      - /root/ecosystem-data:/data
+    environment:
+      DIOSCURI_DATA_DIR: /data
+      HELIOS_QUEUE_PATH: ${HELIOS_QUEUE_PATH:-/data/helios-queue.jsonl}
+      HELIOS_MNEMOSYNE_PATH: ${HELIOS_MNEMOSYNE_PATH:-/data/mnemosyne.json}
+      HELIOS_AUTO_APPROVE: ${HELIOS_AUTO_APPROVE:-1}
+      HELIOS_DRY_RUN: ${HELIOS_DRY_RUN:-0}
+
+  helios-worker:
+    image: aicom/helios:0.1
+    build: .
+    container_name: helios-worker
+    restart: unless-stopped
+    stop_grace_period: 120s
+    init: true
+    env_file: .env
+    environment:
+      HELIOS_DATA_DIR: /data
+      HELIOS_CONFIG: /app/helios.config.yaml
+      DIOSCURI_DATA_DIR: /data
+      HELIOS_QUEUE_PATH: ${HELIOS_QUEUE_PATH:-/data/helios-queue.jsonl}
+      HELIOS_MNEMOSYNE_PATH: ${HELIOS_MNEMOSYNE_PATH:-/data/mnemosyne.json}
+      HELIOS_WORKER_INTERVAL_SEC: ${HELIOS_WORKER_INTERVAL_SEC:-120}
+      HELIOS_AUTO_APPROVE: ${HELIOS_AUTO_APPROVE:-1}
+      HELIOS_DRY_RUN: ${HELIOS_DRY_RUN:-0}
+    volumes:
+      - /root/ecosystem-data:/data
+      - ./helios.config.yaml:/app/helios.config.yaml:ro
+      - ./templates:/app/templates:ro
+      - ./assets:/app/assets:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 2048m
+    cpus: 1.5
+    depends_on:
+      helios:
+        condition: service_started
+    # Intentionally broken-looking sleep "$120" matches the live container so
+    # interval stays 120s via literal; prefer HELIOS_WORKER_INTERVAL_SEC below.
+    command:
+      - sh
+      - -c
+      - |
+        while true; do
+          helios worker || echo "[helios-worker] exit $$?" >&2
+          sleep "$${HELIOS_WORKER_INTERVAL_SEC:-120}"
+        done
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
