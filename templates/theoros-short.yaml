@@ -1,0 +1,26 @@
+# THEOROS canon → YouTube Short. Vars are Theoros's own words (not CALLIOPE rewrite):
+#   chapter, hook, body, debate, canon_url
+id: theoros-short
+defaults:
+  voice: Daniel
+  voice_rate: 165
+  aspect: "9:16"
+segments:
+  - vo: "{hook}"
+    caption: "THEOROS · {chapter}"
+    visual:
+      type: card
+      color: "#1a1a1a"
+      text: "THEOROS · θ"
+  - vo: "{body}"
+    caption: AGENT SOVEREIGNTY
+    visual:
+      type: image
+      path: "aicom-landing-hero.gif"
+      kenburns: true
+  - vo: "{debate}"
+    caption: "#canon-debate"
+    visual:
+      type: card
+      color: "#0b0e17"
+      text: "{canon_url}"

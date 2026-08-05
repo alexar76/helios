@@ -1,0 +1,26 @@
+# Release short — visuals MUST match {repo}. Renderer remaps legacy hardcodes
+# (course-hero / orchestration gif) via visuals_catalog. Prefer {hero}/{still} vars.
+id: release-short
+defaults:
+  voice: Daniel
+  voice_rate: 175
+  aspect: "9:16"
+segments:
+  - vo: "{repo} {tag} just shipped. Open source, MIT."
+    caption: "{repo} · {tag}"
+    visual:
+      type: image
+      path: "{hero}"
+      kenburns: true
+  - vo: "{summary}"
+    caption: WHAT SHIPPED
+    visual:
+      type: image
+      path: "{still}"
+      kenburns: true
+  - vo: "Full release notes on GitHub. Star if useful."
+    caption: "github.com/alexar76/{repo}"
+    visual:
+      type: card
+      color: "#0b0e17"
+      text: "{url}"
