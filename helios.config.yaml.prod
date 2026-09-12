@@ -1,0 +1,39 @@
+channel:
+  handle: "@My-AI-Factory"
+  default_category: "28"
+  default_language: en
+  auto_approve: true
+
+limits:
+  max_uploads_per_day: 9
+  max_job_retries: 2
+
+# Isolated runtime — no PromoMaterials required.
+# Optional backfill: set promo_materials_dir: /promo and mount content.
+asset_roots:
+  - /data/assets
+
+templates_dir: ./templates
+
+github:
+  owner: alexar76
+  repos_allowlist:
+    - aicom
+    - argus
+    - oracles
+    - dioscuri
+    - alien-monitor
+    - helios
+
+director:
+  enabled: true
+
+calliope:
+  enabled: true
+
+notify:
+  webhook_url: ""
+  on_status: [awaiting_approval, failed]
+
+worker:
+  poll_interval_sec: 300
