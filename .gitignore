@@ -1,0 +1,22 @@
+# Secrets & runtime state
+.env
+helios.config.yaml
+data/
+client_secret.json
+client_secret*.json
+youtube_token.json
+
+# Build
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+coverage/
+.coverage
+
+# Renders
+data/renders/

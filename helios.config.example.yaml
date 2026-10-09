@@ -1,0 +1,85 @@
+channel:
+  handle: "@My-AI-Factory"
+  default_category: "28"
+  default_language: en
+  # auto_approve: false   # or HELIOS_AUTO_APPROVE=1 — skip Studio gate, publish after upload
+
+limits:
+  max_uploads_per_day: 9
+  max_job_retries: 2
+
+# Runtime assets live under HELIOS data (isolated). Optional PromoMaterials
+# mount is only for backfill scans — not required for release-short / CALLIOPE.
+# promo_materials_dir: /promo
+
+asset_roots:
+  - ./assets          # bundled defaults (dev)
+  - /data/assets      # production volume
+
+templates_dir: ./templates
+
+github:
+  owner: alexar76
+  fetch_enabled: true   # Helios pulls README + latest release for Calliope seasons
+  repos_allowlist:
+    - aicom
+    - argus
+    - oracles
+    - dioscuri
+    - alien-monitor
+    - helios
+    - theoros
+    - aimarket-hub
+    - platon
+    - metis
+    - acex
+
+director:
+  enabled: true
+  # LLM reviews metadata only — never writes VO for template jobs
+
+# Release "X shipped" shorts are OFF by default. Opt in with HELIOS_RELEASE_SHORTS=1
+# (DIOSCURI + Helios) or accept_release_shorts: true here.
+accept_release_shorts: false
+
+# Seasonal main programming — Calliope scouts themes, not release spam.
+# Undated seasons rotate by weeks from 2026-01-05; optional start: YYYY-MM-DD.
+seasons:
+  - id: trust-and-proof
+    title: "Trust & Proof"
+    themes: [verifiable oracles, AWR work receipts, provenance]
+    repos: [oracles, platon, aimarket-hub, aimarket-protocol]
+    weeks: 4
+  - id: agents-that-act
+    title: "Agents That Act"
+    themes: [personal agents, MCP security, ARGUS, invoke as contract]
+    repos: [argus, aimarket-mcp, dioscuri]
+    weeks: 4
+  - id: the-map
+    title: "The Map"
+    themes: [ecosystem map, Alien Monitor, satellites]
+    repos: [alien-monitor, aicom, aicom-landing, metis]
+    weeks: 3
+  - id: markets-and-memory
+    title: "Markets & Memory"
+    themes: [agent economy, ACEX, THEOROS canon, MNEMOSYNE]
+    repos: [acex, pulse-terminal, dioscuri, theoros, helios]
+    weeks: 3
+
+calliope:
+  enabled: true
+  editorial_enabled: true
+  # Growth-optimized steady state (after PromoMaterials backfill):
+  scout_interval_days: 3       # ~2 scout runs/week → fresh ideas
+  weekly_enqueue_quota: 4      # seasonal episodes > release spam
+  auto_enqueue_per_run: 1      # 1 script per scout run
+  scout_ideas_per_run: 5
+  backfill_pause_threshold: 8  # pause editorial while backfill queue > N
+  # mnemosyne_path: /data/mnemosyne.json
+
+notify:
+  webhook_url: ""
+  on_status: [awaiting_approval, failed]
+
+worker:
+  poll_interval_sec: 300
