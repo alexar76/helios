@@ -115,9 +115,16 @@ def _playlists_meta(cfg: HeliosConfig) -> dict[str, Any] | None:
         return None
 
 
+UPLOAD_PRIVACY = "private"
+
+
 def process_job(cfg: HeliosConfig, store: QueueStore, job: Job, audit: AuditLog, director: Director) -> None:
     render_dir = cfg.data_dir / "renders" / job.id
-    privacy = job.youtube.get("privacy", "private")
+    # Every upload is private; a video becomes public only through _publish_job (`helios approve`
+    # or HELIOS_AUTO_APPROVE). The job's own `youtube.privacy` used to decide it, and an external
+    # queue producer could set it, so a queued job went public without approval (Vulnetix
+    # GCVE-110-PYPI-2026-021897, CWE-863).
+    privacy = UPLOAD_PRIVACY
 
     # Director metadata review
     review = director.review_metadata(job)

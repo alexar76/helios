@@ -76,10 +76,20 @@ def ingest_external_queue(
                 if file_roots and payload.get("srt_path"):
                     from helios.security import validate_existing_file
                     validate_existing_file(payload["srt_path"], file_roots)
+                youtube = dict(payload.get("youtube") or {})
+                asked = youtube.pop("privacy", None)
+                if asked not in (None, "private"):
+                    # A queue producer does not decide visibility: uploads are private and only
+                    # `helios approve` (or auto-approve) publishes (GCVE-110-PYPI-2026-021897).
+                    audit.append(
+                        "ingest.privacy_ignored",
+                        data={"requested": str(asked)[:20], "source": payload.get("source", "external")},
+                    )
+                youtube["privacy"] = "private"
                 job = store.enqueue(
                     template=template,
                     vars=payload.get("vars"),
-                    youtube=payload.get("youtube"),
+                    youtube=youtube,
                     idempotency_key=payload.get("idempotency_key"),
                     source=payload.get("source", "external"),
                     render_path=payload.get("render_path"),

@@ -75,3 +75,54 @@ def test_ingest_permission_denied(tmp_path: Path) -> None:
     assert "ingest.error" in kinds
 
     qfile.chmod(0o644)
+
+
+def test_a_queue_producer_cannot_choose_the_upload_privacy(tmp_path: Path) -> None:
+    """GCVE-110-PYPI-2026-021897: `youtube.privacy` from the shared queue reached the upload,
+    so a producer could publish without `helios approve`."""
+    qfile = tmp_path / "queue.jsonl"
+    qfile.write_text(json.dumps({
+        "template": "theoros-short",
+        "vars": {"chapter": "1", "hook": "h", "body": "b", "debate": "d", "column": "col"},
+        "youtube": {"title": "t", "privacy": "public"},
+        "idempotency_key": "theoros:public",
+        "source": "dioscuri",
+    }) + "\n", encoding="utf-8")
+    store = QueueStore(tmp_path / "data", file_roots=[tmp_path])
+    audit = AuditLog(tmp_path / "data" / "audit.jsonl")
+    assert ingest_external_queue(store, audit, path=qfile, accept_release_shorts=True) == 1
+    job = store.list_jobs()[0]
+    assert job.youtube == {"title": "t", "privacy": "private"}
+    events = [json.loads(line) for line in (tmp_path / "data" / "audit.jsonl").read_text().splitlines()]
+    ignored = [e for e in events if e["kind"] == "ingest.privacy_ignored"]
+    assert ignored and ignored[0]["data"] == {"requested": "public", "source": "dioscuri"}
+
+
+def test_the_worker_uploads_private_whatever_the_job_asks(tmp_path: Path, monkeypatch) -> None:
+    from types import SimpleNamespace
+
+    from helios import worker
+
+    video = tmp_path / "v.mp4"
+    video.write_bytes(b"\0")
+    store = QueueStore(tmp_path / "data", file_roots=[tmp_path])
+    audit = AuditLog(tmp_path / "data" / "audit.jsonl")
+    job = store.enqueue(template="theoros-short", youtube={"title": "t", "privacy": "public"},
+                        render_path=str(video))
+    seen = {}
+    monkeypatch.setattr(worker, "_video_luma_qc", lambda path: {"ok": True})
+    monkeypatch.setattr(worker, "get_youtube", lambda **kw: object())
+    monkeypatch.setattr(worker, "_channel_dict", lambda cfg: {})
+    monkeypatch.setattr(worker, "_playlists_meta", lambda cfg: None)
+
+    def fake_upload(youtube, **kw):
+        seen["privacy"] = kw["privacy"]
+        return "vid123"
+
+    monkeypatch.setattr(worker, "upload_job", fake_upload)
+    cfg = SimpleNamespace(data_dir=tmp_path / "data", dry_run=False, max_uploads_per_day=10,
+                          youtube_client_secret="s", youtube_token="t", auto_approve=False)
+    director = SimpleNamespace(review_metadata=lambda job: {"approve": True})
+    worker.process_job(cfg, store, job, audit, director)
+    assert seen["privacy"] == "private"
+    assert store.get_job(job.id).status == "awaiting_approval"
