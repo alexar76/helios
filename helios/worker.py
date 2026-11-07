@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import time
 import traceback
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +19,7 @@ from helios.ingest import ingest_external_queue
 from helios.notify import Notifier
 from helios.queue import Job, QueueStore
 from helios.renderer import render_script, render_template
+from helios.security import validate_job_id
 from helios.youtube.auth import get_youtube
 from helios.youtube.stats import YoutubeStatsCache
 from helios.youtube.upload import upload_job, publish_video
@@ -237,6 +240,20 @@ def _publish_job(
     *,
     actor: str,
 ) -> None:
+    with store.publication_lock(job.id):
+        # The worker may have read its backlog before an operator hid this video.
+        current = store.get_job(job.id)
+        if current is None:
+            raise ValueError(f"job not found: {job.id}")
+        job.__dict__.update(current.__dict__)
+        if actor == "auto" and job.status not in ("uploading", "awaiting_approval"):
+            return
+        _publish_locked(cfg, store, job, audit, actor=actor)
+
+
+def _publish_locked(
+    cfg: HeliosConfig, store: QueueStore, job: Job, audit: AuditLog, *, actor: str,
+) -> None:
     if not job.video_id:
         raise ValueError("job has no video_id — not uploaded yet")
     if cfg.dry_run:
@@ -259,6 +276,50 @@ def _publish_job(
     audit.append("youtube.approved", job_id=job.id, actor=actor, data={"video_id": job.video_id})
 
 
+def _recover_unpublished_jobs(store: QueueStore, audit: AuditLog) -> bool:
+    """Recover old withdrawal states; refuse automatic publication on uncertain history."""
+    waiting = store.list_jobs(status="awaiting_approval")
+    if not waiting:
+        return True
+    last_action: dict[str, str] = {}
+    complete = True
+    try:
+        with audit.path.open(encoding="utf-8") as events:
+            for line in events:
+                if not line.strip():
+                    continue
+                try:
+                    event = json.loads(line)
+                    if not isinstance(event, dict) or not isinstance(event.get("kind"), str):
+                        raise ValueError("invalid audit event")
+                    if event["kind"] in ("youtube.unpublished", "youtube.approved"):
+                        if not isinstance(event.get("job_id"), str):
+                            raise ValueError("publication event without job id")
+                        last_action[validate_job_id(event["job_id"])] = event["kind"]
+                except (ValueError, TypeError):
+                    # Keep scanning to recover known withdrawals, but do not trust the
+                    # remaining backlog for automatic approval if any event is uncertain.
+                    complete = False
+    except (OSError, UnicodeError):
+        complete = False
+    for previous in waiting:
+        if last_action.get(previous.id) != "youtube.unpublished":
+            continue
+        with store.publication_lock(previous.id):
+            job = store.get_job(previous.id)
+            if job is None or job.status != "awaiting_approval":
+                continue
+            job.status = "unpublished"
+            job.youtube["privacy"] = "private"
+            store.update_job(job)
+            state = store.load_upload_state()
+            ep = job.vars.get("episode", job.id)
+            if ep in state.get("videos", {}):
+                state["videos"][ep]["privacy"] = "private"
+                store.save_upload_state(state)
+    return complete
+
+
 def run_worker(cfg: HeliosConfig | None = None, *, max_jobs: int | None = None) -> int:
     cfg = cfg or load_config()
     store = QueueStore(cfg.data_dir, file_roots=file_roots(cfg))
@@ -272,6 +333,13 @@ def run_worker(cfg: HeliosConfig | None = None, *, max_jobs: int | None = None) 
     exit_code = 0
     processed = 0
     try:
+        if not _recover_unpublished_jobs(store, audit) and cfg.auto_approve:
+            # A truncated withdrawal record cannot safely be treated as approval.
+            cfg = replace(cfg, auto_approve=False)
+            print(
+                "HELIOS: automatic approval paused: publication audit history is incomplete; "
+                "explicit approval is required", file=sys.stderr,
+            )
         store.recover_stale()
         ingested = ingest_external_queue(
             store,
@@ -372,17 +440,24 @@ def unpublish_job(cfg: HeliosConfig, job_id: str, *, actor: str = "operator") ->
     """public/unlisted → private (hide a bad auto-approve)."""
     store = QueueStore(cfg.data_dir, file_roots=file_roots(cfg))
     audit = AuditLog(cfg.data_dir / "audit.jsonl")
-    job = store.get_job(job_id)
-    if not job:
-        raise ValueError(f"job not found: {job_id}")
-    if not job.video_id:
-        raise ValueError(f"job has no video_id: {job_id}")
-    if not cfg.youtube_client_secret or not cfg.youtube_token:
-        raise FileNotFoundError("YOUTUBE_CLIENT_SECRET and YOUTUBE_TOKEN required")
-    youtube = get_youtube(client_secret=cfg.youtube_client_secret, token_path=cfg.youtube_token)
-    publish_video(youtube, job.video_id, "private")
-    job.youtube["privacy"] = "private"
-    job.status = "awaiting_approval"
-    store.update_job(job)
-    audit.append("youtube.unpublished", job_id=job.id, actor=actor, data={"video_id": job.video_id})
-    return job
+    with store.publication_lock(job_id):
+        job = store.get_job(job_id)
+        if not job:
+            raise ValueError(f"job not found: {job_id}")
+        if not job.video_id:
+            raise ValueError(f"job has no video_id: {job_id}")
+        if not cfg.youtube_client_secret or not cfg.youtube_token:
+            raise FileNotFoundError("YOUTUBE_CLIENT_SECRET and YOUTUBE_TOKEN required")
+        youtube = get_youtube(client_secret=cfg.youtube_client_secret, token_path=cfg.youtube_token)
+        publish_video(youtube, job.video_id, "private")
+        job.youtube["privacy"] = "private"
+        # An operator withdrawal needs a fresh explicit approve, even with auto-approve enabled.
+        job.status = "unpublished"
+        store.update_job(job)
+        state = store.load_upload_state()
+        ep = job.vars.get("episode", job.id)
+        if ep in state.get("videos", {}):
+            state["videos"][ep]["privacy"] = "private"
+            store.save_upload_state(state)
+        audit.append("youtube.unpublished", job_id=job.id, actor=actor, data={"video_id": job.video_id})
+        return job

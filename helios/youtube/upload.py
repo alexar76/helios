@@ -51,6 +51,9 @@ def upload_captions(youtube, video_id: str, srt_path: Path, lang: str = "en") ->
 
 
 def publish_video(youtube, video_id: str, privacy: str = "public") -> None:
+    # Updating the status part deletes omitted mutable fields. In particular, omit
+    # publishAt so making a scheduled video private also cancels its scheduled release.
+    # https://developers.google.com/youtube/v3/docs/videos/update
     youtube.videos().update(
         part="status",
         body={"id": video_id, "status": {"privacyStatus": privacy, "embeddable": True}},

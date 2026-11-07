@@ -27,7 +27,7 @@ dependencies = [
     "google-api-python-client>=2.100",
     "google-auth-oauthlib>=1.2",
     "google-auth-httplib2>=0.2",
-    "pillow>=10.0",
+    "pillow>=13.0.0",
     "edge-tts>=7.3.1",  # 7.2.8 gets 403 from the Edge read-aloud service (2026-11-05)
 ]
 

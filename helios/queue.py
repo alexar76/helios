@@ -24,7 +24,7 @@ from helios.security import (
 
 JobStatus = Literal[
     "pending", "rendering", "uploading", "awaiting_approval",
-    "published", "failed", "skipped",
+    "published", "unpublished", "failed", "skipped",
 ]
 
 STALE_RENDERING_MIN = 30
@@ -100,6 +100,19 @@ class QueueStore:
         """Cross-process exclusive lock for all queue.json mutations."""
         self._queue_lock_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self._queue_lock_path, "a", encoding="utf-8") as lock_file:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+    @contextmanager
+    def publication_lock(self, job_id: str):
+        """Serialize YouTube privacy changes across the worker and operator CLI."""
+        lock_dir = self.data_dir / "publication-locks"
+        lock_dir.mkdir(parents=True, exist_ok=True)
+        lock_path = lock_dir / (validate_job_id(job_id) + ".lock")
+        with open(lock_path, "a", encoding="utf-8") as lock_file:
             fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
             try:
                 yield

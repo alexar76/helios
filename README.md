@@ -137,6 +137,13 @@ flowchart TB
 
 **Status flow:** `pending` → `rendering` → `uploading` → `awaiting_approval` → `published`
 
+`helios unpublish <job>` moves the video to private and records `unpublished`.
+Automatic approval leaves it private across worker restarts; `helios approve <job>`
+explicitly publishes it again.
+On upgrade, the worker recovers old `awaiting_approval` withdrawals from the last
+publication action in `audit.jsonl`. Missing or malformed audit history pauses
+automatic approval of that backlog until an operator explicitly approves it.
+
 ## Quick start (pip)
 
 ```bash
